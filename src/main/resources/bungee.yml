@@ -1,0 +1,4 @@
+name: BungeeCordWhitelistCT
+version: '${version}'
+main: me.monkey_cat.bungeecordwhitelistct.BungeeCordWhitelistCT
+author: a3510377

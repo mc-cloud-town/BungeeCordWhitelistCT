@@ -1,0 +1,50 @@
+# 是否啟用該插劍
+enable: true
+# 是否啟用白名單
+whitelistEnable: true
+# 當玩家不在白名單時，踢出玩家的訊息
+kickMessage: |
+  &c您不是本服的成員，無法進入。
+  You are not a member of this server and cannot enter."
+# 當玩家嘗試進入其他伺服器時，若該伺服器不在白名單中，踢出玩家的訊息
+tryMoveKickMessage:
+  '&c您尚未獲取 <new_server> 白名單，無法進入。 You have not obtained the <new_server>
+  whitelist and cannot enter.'
+# 若玩家無第一個伺服器權限，顯示的重新導向訊息
+autoGuidanceMoveMessage:
+  '&c您不在 <old_server> 的白名單中，您已被導向 <new_server>。 You are not
+  in the <old_server> whitelist, you have been directed to <new_server>.'
+# 白名單等級，該等級玩家可進入的伺服器
+groups:
+  level1: &id_001
+    - Survival
+    - Mirror
+    - Mirror2
+    - Creative
+    - Creative2
+    - Arceon
+  level2: *id_001
+  level3:
+    - Survival
+    - Mirror
+    - Mirror2
+  level4: [ ]
+
+# 白名單等級，該等級玩家可進入的伺服器
+whitelist:
+  level1:
+    - monkey_Reachrs
+  level2:
+    - monkey_Reachrs
+  level3:
+    - monkey_Reachrs
+  level4:
+    - monkey_Reachrs
+
+# 特殊白名單，該名單玩家可指定進入的伺服器
+# 前方代`!`表示禁止進入該伺服器
+specialWhitelist:
+  # 允許 monkey_Reachrs 進入 test1，不允許進入 test
+  monkey_Reachrs:
+    - '!test'
+    # - test1
