@@ -45,7 +45,7 @@ jobs:
 
       - uses: actions/download-artifact@v4
         with:
-          name: BungeeCordWhitelistCT-dev-${{ needs.short_sha.outputs.COMMIT_SHORT_SHA }}.zip
+          name: BungeeCordWhitelistCT-dev-${{ needs.short_sha.outputs.COMMIT_SHORT_SHA }}
           path: out
 
       - name: upload Release
