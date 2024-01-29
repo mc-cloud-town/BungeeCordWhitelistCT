@@ -155,10 +155,10 @@ public class Commands extends Command implements TabExecutor {
             try {
                 dispatcher.execute(parse);
             } catch (CommandSyntaxException error) {
-                sender.sendMessage();
+                sendHelp(sender);
             }
         } catch (Exception error) {
-            sender.sendMessage();
+            sendHelp(sender);
         }
     }
 
