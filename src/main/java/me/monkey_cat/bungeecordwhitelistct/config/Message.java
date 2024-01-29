@@ -24,7 +24,7 @@ public class Message extends FileConfig {
         if (retryCount < MAX_RETRIES) {
             writeDefault();
             return tryGetStringHelper(path, retryCount + 1);
-        } else throw new RuntimeException("Maximum retry count reached");
+        } else throw new RuntimeException("Maximum retry count reached: Message.tryGetString -> " + path);
     }
 
     public String getEnable() {

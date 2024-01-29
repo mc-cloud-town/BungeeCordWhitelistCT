@@ -33,10 +33,10 @@ public class Events implements Listener {
 
     @EventHandler
     public void onServerConnectEvent(ServerConnectEvent event) {
+        if (!plugin.config.isEnable()) return;
+
         ProxiedPlayer player = event.getPlayer();
         try {
-            if (!plugin.config.isEnable()) return;
-
             String newServerName = event.getTarget().getName();
             if (plugin.config.hasInWhitelist(newServerName, player)) {
                 return;
