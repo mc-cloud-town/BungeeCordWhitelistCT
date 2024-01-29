@@ -56,11 +56,6 @@ public class Config extends FileConfig {
         return configuration.getBoolean("enable");
     }
 
-    public boolean isWhitelistEnable() {
-        tryLoad();
-        return isEnable() && configuration.getBoolean("whitelistEnable");
-    }
-
     public void setWhitelistEnable(Boolean enable) {
         configuration.set("enable", enable);
     }

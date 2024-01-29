@@ -10,13 +10,15 @@ help: |
   <prefix> groups remove \<group_name\> \<player_name\> - 移除玩家於 \<group_name\> 中
   <prefix> add \<server_name\> \<player_name\> - 添加玩家在 \<server_name\> 的白名單
   <prefix> remove \<server_name\> \<player_name\> - 移除玩家在 \<server_name\> 的白名單
-kickMessage: <red>您不是本服的成員，無法進入。 You are not a member of this server and cannot enter.
-tryMoveKickMessage:
-  <red>您尚未獲取 <new_server> 白名單，無法進入。 You have not obtained the <new_server>
-  whitelist and cannot enter.
-autoGuidanceMoveMessage:
-  <red>您不在 <old_server> 的白名單中，您已被導向 <new_server>。 You are not
-  in the <old_server> whitelist, you have been directed to <new_server>.
+kickMessage: |
+  &c您不是本服的成員，無法進入。
+  You are not a member of this server and cannot enter.'
+tryMoveKickMessage: |
+  <red>您尚未獲取 <new_server> 白名單，無法進入。
+  You have not obtained the <new_server> whitelist and cannot enter.
+autoGuidanceMoveMessage: |
+  <red>您不在 <old_server> 的白名單中，您已被導向 <new_server>。
+  You are not in the <old_server> whitelist, you have been directed to <new_server>.
 enable: '<yellow><b>白名單已開啟'
 disable: '<red><b>白名單已關閉'
 serverInvalid: '<red><b>無效的伺服器 ID <server_name>'
