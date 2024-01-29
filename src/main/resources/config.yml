@@ -3,14 +3,20 @@ enable: true
 
 # 白名單等級，該等級玩家可進入的伺服器
 groups:
-  level1: &id_001
+  level1:
     - Survival
     - Mirror
     - Mirror2
     - Creative
     - Creative2
     - Arceon
-  level2: *id_001
+  level2:
+    - Survival
+    - Mirror
+    - Mirror2
+    - Creative
+    - Creative2
+    - Arceon
   level3:
     - Survival
     - Mirror

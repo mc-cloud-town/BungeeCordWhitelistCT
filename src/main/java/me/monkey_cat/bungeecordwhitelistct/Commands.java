@@ -155,10 +155,10 @@ public class Commands extends Command implements TabExecutor {
             try {
                 dispatcher.execute(parse);
             } catch (CommandSyntaxException error) {
-                sender.sendMessage();
+                sendHelp(sender);
             }
         } catch (Exception error) {
-            sender.sendMessage();
+            sendHelp(sender);
         }
     }
 
@@ -193,6 +193,11 @@ public class Commands extends Command implements TabExecutor {
                 component("player_name", text(playerName))
         ));
         return 0;
+    }
+
+    private void sendHelp(CommandSender sender) {
+        final Audience audience = plugin.adventure().sender(sender);
+        audience.sendMessage(miniMessage().deserialize(msgCnf.getHelp()));
     }
 
     private int removeServerWhitelist(CommandContext<CommandSender> ctx) {

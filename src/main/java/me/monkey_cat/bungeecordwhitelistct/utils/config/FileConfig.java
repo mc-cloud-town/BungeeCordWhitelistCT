@@ -44,11 +44,10 @@ public class FileConfig {
         return tryLoad();
     }
 
+    @SuppressWarnings("ResultOfMethodCallIgnored")
     public void writeDefault() {
-        //noinspection ResultOfMethodCallIgnored
-        file.getParentFile().mkdirs();
         try (InputStream in = this.getClass().getClassLoader().getResourceAsStream(defaultPath)) {
-            Files.delete(file.toPath());
+            file.delete();
             Files.copy(Objects.requireNonNull(in), file.toPath());
         } catch (Exception ignored) {
         }
