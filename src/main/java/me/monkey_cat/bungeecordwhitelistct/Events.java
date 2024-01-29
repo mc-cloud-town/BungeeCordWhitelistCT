@@ -33,36 +33,40 @@ public class Events implements Listener {
 
     @EventHandler
     public void onServerConnectEvent(ServerConnectEvent event) {
-        if (!plugin.config.isEnable()) return;
-
         ProxiedPlayer player = event.getPlayer();
-        String newServerName = event.getTarget().getName();
-        if (plugin.config.hasInWhitelist(newServerName, player)) {
-            return;
-        }
-        final Audience audience = plugin.adventure().sender(player);
+        try {
+            if (!plugin.config.isEnable()) return;
 
-
-        @Nullable Server oldServer = player.getServer();
-        if (oldServer == null) {
-            for (Map.Entry<String, ServerInfo> server : plugin.getProxy().getServers().entrySet()) {
-                if (plugin.config.hasInWhitelist(server.getKey(), player)) {
-                    event.setTarget(server.getValue());
-
-                    audience.sendMessage(miniMessage().deserialize(plugin.message.getAutoGuidanceMoveMessage(),
-                            component("old_server", text(newServerName)),
-                            component("new_server", text(server.getKey()))
-                    ));
-                    return;
-                }
+            String newServerName = event.getTarget().getName();
+            if (plugin.config.hasInWhitelist(newServerName, player)) {
+                return;
             }
-            player.disconnect(colorize(plugin.message.getKickMessage()));
-        } else {
-            event.setCancelled(true);
-            audience.sendMessage(miniMessage().deserialize(plugin.message.getTryMoveKickMessage(),
-                    component("old_server", text(oldServer.getInfo().getName())),
-                    component("new_server", text(newServerName))
-            ));
+            final Audience audience = plugin.adventure().sender(player);
+
+            @Nullable Server oldServer = player.getServer();
+            if (oldServer == null) {
+                for (Map.Entry<String, ServerInfo> server : plugin.getProxy().getServers().entrySet()) {
+                    if (plugin.config.hasInWhitelist(server.getKey(), player)) {
+                        event.setTarget(server.getValue());
+
+                        audience.sendMessage(miniMessage().deserialize(plugin.message.getAutoGuidanceMoveMessage(),
+                                component("old_server", text(newServerName)),
+                                component("new_server", text(server.getKey()))
+                        ));
+                        return;
+                    }
+                }
+                player.disconnect(colorize(plugin.message.getKickMessage()));
+            } else {
+                event.setCancelled(true);
+                audience.sendMessage(miniMessage().deserialize(plugin.message.getTryMoveKickMessage(),
+                        component("old_server", text(oldServer.getInfo().getName())),
+                        component("new_server", text(newServerName))
+                ));
+            }
+        } catch (Throwable e) {
+            plugin.getLogger().info("[ERROR] player join throw error: " + e);
+            player.disconnect();
         }
     }
 

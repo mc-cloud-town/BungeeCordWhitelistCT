@@ -5,17 +5,34 @@ import me.monkey_cat.bungeecordwhitelistct.utils.config.FileConfig;
 import java.nio.file.Path;
 
 public class Message extends FileConfig {
+    private static final int MAX_RETRIES = 3;
+
     public Message(Path configPath) {
         super(configPath, "message.yml");
     }
 
-    protected String tryGetString(String path) {
+    public String tryGetString(String path) {
+        return tryGetStringHelper(path, 0);
+    }
+
+    private String tryGetStringHelper(String path, int retryCount) {
         tryLoad();
-        return configuration.getString(path);
+
+        String value = configuration.getString(path);
+        if (value != null) return value;
+
+        if (retryCount < MAX_RETRIES) {
+            writeDefault();
+            return tryGetStringHelper(path, retryCount + 1);
+        } else throw new RuntimeException("Maximum retry count reached");
     }
 
     public String getEnable() {
         return tryGetString("enable");
+    }
+
+    public String getHelp() {
+        return tryGetString("help");
     }
 
     public String getDisable() {
