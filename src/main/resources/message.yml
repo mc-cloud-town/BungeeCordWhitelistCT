@@ -1,0 +1,34 @@
+help: |
+  <prefix> help - 顯示幫助訊息
+  <prefix> enable - 開啟白名單
+  <prefix> disable - 關閉白名單
+  <prefix> groups list - 查看所有的白名單組
+  <prefix> groups list <group_name> players - 查看所有在白名單組內的玩家
+  <prefix> groups create <group_name> - 創建白名單組
+  <prefix> groups delete <group_name> - 刪除白名單組
+  <prefix> groups add \<group_name\> \<player_name\> - 添加玩家於 \<group_name\> 中
+  <prefix> groups remove \<group_name\> \<player_name\> - 移除玩家於 \<group_name\> 中
+  <prefix> add \<server_name\> \<player_name\> - 添加玩家在 \<server_name\> 的白名單
+  <prefix> remove \<server_name\> \<player_name\> - 移除玩家在 \<server_name\> 的白名單
+kickMessage: <red>您不是本服的成員，無法進入。 You are not a member of this server and cannot enter.
+tryMoveKickMessage:
+  <red>您尚未獲取 <new_server> 白名單，無法進入。 You have not obtained the <new_server>
+  whitelist and cannot enter.
+autoGuidanceMoveMessage:
+  <red>您不在 <old_server> 的白名單中，您已被導向 <new_server>。 You are not
+  in the <old_server> whitelist, you have been directed to <new_server>.
+enable: '<yellow><b>白名單已開啟'
+disable: '<red><b>白名單已關閉'
+serverInvalid: '<red><b>無效的伺服器 ID <server_name>'
+groupNotFound: '<red><b>未找到該組名'
+groupShow: '所有白名單組: '
+missingArgument: '<red><b>缺少參數 <arg_name>'
+groupShowPlayers: '<yellow>白名單组 <aqua><b><group_name></b></aqua> 成員名單: '
+groupShowServers: '<yellow>白名單组 <aqua><b><group_name></b></aqua> 伺服器名單: '
+groupCreateCompleted: '白名單组 <group_name> 建立完成'
+groupAlreadyExists: '<red><b>白名單组 <group_name> 已經存在'
+groupDeleteCompleted: '<red><b>白名單组 <group_name> 刪除完成'
+groupAddPlayerCompleted: '已從白名單組 <group_name> 添加 <player_name> 完畢'
+groupRemovePlayerCompleted: '已從白名單組 <group_name> 移除 <player_name> 完畢'
+serverAddPlayerCompleted: '添加 <player_name> 到 <server_name> 伺服器白名單'
+serverRemovePlayerCompleted: '<red><b>移除 <player_name>到 <server_name> 伺服器白名單'

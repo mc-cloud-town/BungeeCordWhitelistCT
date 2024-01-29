@@ -1,5 +1,6 @@
 package me.monkey_cat.bungeecordwhitelistct;
 
+import net.kyori.adventure.audience.Audience;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.config.ServerInfo;
@@ -12,6 +13,10 @@ import net.md_5.bungee.event.EventHandler;
 import javax.annotation.Nullable;
 import java.util.Map;
 import java.util.logging.Logger;
+
+import static net.kyori.adventure.text.Component.text;
+import static net.kyori.adventure.text.minimessage.MiniMessage.miniMessage;
+import static net.kyori.adventure.text.minimessage.tag.resolver.Placeholder.component;
 
 public class Events implements Listener {
     protected final BungeeCordWhitelistCT plugin;
@@ -35,24 +40,29 @@ public class Events implements Listener {
         if (plugin.config.hasInWhitelist(newServerName, player)) {
             return;
         }
+        final Audience audience = plugin.adventure().sender(player);
+
 
         @Nullable Server oldServer = player.getServer();
         if (oldServer == null) {
             for (Map.Entry<String, ServerInfo> server : plugin.getProxy().getServers().entrySet()) {
                 if (plugin.config.hasInWhitelist(server.getKey(), player)) {
                     event.setTarget(server.getValue());
-                    player.sendMessage(colorize(plugin.config.getAutoGuidanceMoveMessage()
-                            .replace("<old_server>", newServerName)
-                            .replace("<new_server>", server.getKey())));
+
+                    audience.sendMessage(miniMessage().deserialize(plugin.message.getAutoGuidanceMoveMessage(),
+                            component("old_server", text(newServerName)),
+                            component("new_server", text(server.getKey()))
+                    ));
                     return;
                 }
             }
-            player.disconnect(colorize(plugin.config.getKickMessage()));
+            player.disconnect(colorize(plugin.message.getKickMessage()));
         } else {
             event.setCancelled(true);
-            player.sendMessage(colorize(plugin.config.getTryMoveKickMessage()
-                    .replace("<old_server>", oldServer.getInfo().getName())
-                    .replace("<new_server>", newServerName)));
+            audience.sendMessage(miniMessage().deserialize(plugin.message.getTryMoveKickMessage(),
+                    component("old_server", text(oldServer.getInfo().getName())),
+                    component("new_server", text(newServerName))
+            ));
         }
     }
 

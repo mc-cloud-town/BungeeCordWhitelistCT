@@ -1,59 +1,19 @@
 package me.monkey_cat.bungeecordwhitelistct.config;
 
-import com.github.smuddgge.squishyconfiguration.interfaces.Configuration;
+import me.monkey_cat.bungeecordwhitelistct.utils.config.FileConfig;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 
-import java.io.File;
-import java.io.InputStream;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
 
-public class Config {
-    private final File file;
+public class Config extends FileConfig {
     private final HashMap<String, HashSet<String>> serverWhitelist = new HashMap<>();
-    private final CTYamlConfiguration configuration;
-    private long lastModified;
 
     public Config(Path configPath) {
-        this.file = configPath.toFile();
-        configuration = new CTYamlConfiguration(this.file);
-        configuration.load();
+        super(configPath, "config.yml");
     }
 
-    public void save() {
-        configuration.save();
-    }
-
-    public boolean tryLoad() {
-        if (file.isFile()) {
-            final long fileLastMod = file.lastModified();
-
-            if (fileLastMod == lastModified) return false;
-            if (configuration.load()) {
-                try {
-                    parse();
-                    lastModified = fileLastMod;
-                    return true;
-                } catch (Exception ignored) {
-                }
-            }
-        }
-
-        writeDefault();
-        return tryLoad();
-    }
-
-    public void writeDefault() {
-        //noinspection ResultOfMethodCallIgnored
-        file.getParentFile().mkdirs();
-        try (InputStream in = this.getClass().getClassLoader().getResourceAsStream("whitelist-default.yml")) {
-            Files.delete(file.toPath());
-            Files.copy(Objects.requireNonNull(in), file.toPath());
-        } catch (Exception ignored) {
-        }
-    }
-
+    @Override
     public void parse() {
         serverWhitelist.clear();
         Map<String, Set<String>> groups = getItem("groups", false);
@@ -85,28 +45,10 @@ public class Config {
         }
     }
 
-    private Map<String, Set<String>> getItem(String path, boolean reload) {
-        if (reload) tryLoad();
-
-        Map<String, Set<String>> data = new HashMap<>();
-        configuration.getMap(path).forEach((s, o) -> {
-            if (o instanceof List<?>) {
-                List<String> names = ((List<?>) o).stream().map(Object::toString).toList();
-                data.put(s, new HashSet<>(names));
-            }
-        });
-
-        return data;
-    }
-
     private Map<String, List<String>> setToListType(Map<String, Set<String>> old) {
         Map<String, List<String>> data = new HashMap<>();
         old.forEach((s, o) -> data.put(s, o.stream().map(Object::toString).toList()));
         return data;
-    }
-
-    private Map<String, Set<String>> getItem(String path) {
-        return getItem(path, true);
     }
 
     public boolean isEnable() {
@@ -122,7 +64,7 @@ public class Config {
     public void setWhitelistEnable(Boolean enable) {
         configuration.set("enable", enable);
     }
-    
+
     public boolean hasInWhitelist(String serverName, ProxiedPlayer player) {
         return hasInWhitelist(serverName, player.getName());
     }
@@ -130,21 +72,6 @@ public class Config {
     public boolean hasInWhitelist(String serverName, String playerName) {
         tryLoad();
         return serverWhitelist.containsKey(serverName) && serverWhitelist.get(serverName).contains(playerName);
-    }
-
-    public String getKickMessage() {
-        tryLoad();
-        return configuration.getString("kickMessage");
-    }
-
-    public String getTryMoveKickMessage() {
-        tryLoad();
-        return configuration.getString("tryMoveKickMessage");
-    }
-
-    public String getAutoGuidanceMoveMessage() {
-        tryLoad();
-        return configuration.getString("autoGuidanceMoveMessage");
     }
 
     public Map<String, Set<String>> getGroups() {
@@ -172,9 +99,5 @@ public class Config {
     public void setSpecialWhitelist(Map<String, Set<String>> specialWhitelist) {
         configuration.set("specialWhitelist", setToListType(specialWhitelist));
         save();
-    }
-
-    public Configuration getConfiguration() {
-        return configuration;
     }
 }

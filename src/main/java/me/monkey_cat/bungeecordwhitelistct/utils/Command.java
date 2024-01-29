@@ -8,6 +8,7 @@ import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import net.md_5.bungee.api.CommandSender;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
@@ -28,6 +29,10 @@ public class Command {
         } catch (IllegalArgumentException ignored) {
             return Optional.empty();
         }
+    }
+
+    public static CompletableFuture<Suggestions> suggestMatching(List<String> suggestions, SuggestionsBuilder suggestionsBuilder) {
+        return suggestMatching(suggestions::iterator, suggestionsBuilder);
     }
 
     public static CompletableFuture<Suggestions> suggestMatching(Iterable<String> suggestions, SuggestionsBuilder suggestionsBuilder) {

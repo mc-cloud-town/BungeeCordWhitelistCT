@@ -1,4 +1,5 @@
 name: BungeeCordWhitelistCT
-version: '${version}'
+version: '${project.version}'
 main: me.monkey_cat.bungeecordwhitelistct.BungeeCordWhitelistCT
 author: a3510377
+description: BungeeCordWhitelist

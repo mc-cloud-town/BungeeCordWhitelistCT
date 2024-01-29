@@ -1,4 +1,4 @@
-package me.monkey_cat.bungeecordwhitelistct.config;
+package me.monkey_cat.bungeecordwhitelistct.utils.config;
 
 import com.github.smuddgge.squishyconfiguration.implementation.YamlConfiguration;
 import org.jetbrains.annotations.NotNull;
@@ -12,8 +12,8 @@ import java.nio.charset.StandardCharsets;
 
 import static org.yaml.snakeyaml.DumperOptions.FlowStyle.BLOCK;
 
-public class CTYamlConfiguration extends YamlConfiguration {
-    public CTYamlConfiguration(@NotNull File file) {
+public class FileYamlConfiguration extends YamlConfiguration {
+    public FileYamlConfiguration(@NotNull File file) {
         super(file);
     }
 

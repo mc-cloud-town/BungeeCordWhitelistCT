@@ -2,6 +2,7 @@ package me.monkey_cat.bungeecordwhitelistct;
 
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.ParseResults;
+import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.builder.RequiredArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
@@ -9,59 +10,62 @@ import com.mojang.brigadier.suggestion.Suggestion;
 import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import me.monkey_cat.bungeecordwhitelistct.config.Config;
-import net.md_5.bungee.api.ChatColor;
+import me.monkey_cat.bungeecordwhitelistct.config.Message;
+import net.kyori.adventure.audience.Audience;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.event.HoverEvent;
+import net.kyori.adventure.text.format.NamedTextColor;
 import net.md_5.bungee.api.CommandSender;
-import net.md_5.bungee.api.chat.ComponentBuilder;
-import net.md_5.bungee.api.chat.HoverEvent;
-import net.md_5.bungee.api.chat.TextComponent;
-import net.md_5.bungee.api.chat.TranslatableComponent;
-import net.md_5.bungee.api.chat.hover.content.Text;
 import net.md_5.bungee.api.plugin.Command;
 import net.md_5.bungee.api.plugin.TabExecutor;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Predicate;
 
 import static com.mojang.brigadier.arguments.StringArgumentType.getString;
 import static com.mojang.brigadier.arguments.StringArgumentType.word;
 import static me.monkey_cat.bungeecordwhitelistct.utils.Command.*;
 import static me.monkey_cat.bungeecordwhitelistct.utils.Utils.getAllPlayersName;
 import static me.monkey_cat.bungeecordwhitelistct.utils.Utils.getAllServersName;
+import static net.kyori.adventure.text.Component.text;
+import static net.kyori.adventure.text.minimessage.MiniMessage.miniMessage;
+import static net.kyori.adventure.text.minimessage.tag.resolver.Placeholder.component;
 
 public class Commands extends Command implements TabExecutor {
     static public final String GROUP_NAME = "GroupName";
     static public final String PLAYER_NAME = "PlayerName";
     static public final String SERVER_NAME = "ServerName";
     public final Config config;
+    public final Message msgCnf;
     private final BungeeCordWhitelistCT plugin;
     private final CommandDispatcher<CommandSender> dispatcher;
 
     public Commands(BungeeCordWhitelistCT plugin) {
         super("whitelistct");
 
-        var root = literal("")
-                .then(
-                        literal("groups")
-                                .then(literal("list").executes(this::showGroups)
-                                        .then(argumentGroupName().executes(this::showGroups)
-//                                                .then(literal("players").executes(this::showGroupPlayers)))
-                                        ))
+        LiteralArgumentBuilder<CommandSender> root = literal("")
+                .requires(hasPermission("player"))
+                .then(literal("groups")
+                        .then(literal("list").executes(this::showGroups)
+                                .then(argumentGroupName().executes(this::showGroups)
+                                        .then(literal("players").executes(this::showGroupPlayers))))
 
-                                .then(literal("create").executes(missingArg(GROUP_NAME))
-//                                        .then(argument(GROUP_NAME, word()).executes(this::createGroup))
-                                )
+                        .then(literal("create").requires(hasPermission("groups")).executes(missingArg(GROUP_NAME))
+                                .then(argument(GROUP_NAME, word()).executes(this::createGroup)))
 
-                                .then(literal("delete").executes(missingArg(GROUP_NAME))
-//                                        .then(argumentGroupName().executes(this::deleteGroup))
-                                )
+                        .then(literal("delete").requires(hasPermission("groups"))
+                                .executes(missingArg(GROUP_NAME)).then(argumentGroupName().executes(this::deleteGroup)))
 
-                                .then(literal("add").executes(missingArg(GROUP_NAME))
-//                                        .then(argumentGroupName().executes(missingArg(PLAYER_NAME)).then(argumentPlayerName().executes(this::addGroupWhitelist)))
-                                )
+                        .then(literal("add").requires(hasPermission("player")).executes(missingArg(GROUP_NAME))
+                                .then(argumentGroupName().executes(missingArg(PLAYER_NAME))
+                                        .then(argument(PLAYER_NAME, word()).suggests(this::suggestGroupNoPlayers).executes(this::addGroupWhitelist)))
+                        )
 
-                                .then(literal("remove").executes(missingArg(GROUP_NAME))
-//                                        .then(argumentGroupName().executes(missingArg(PLAYER_NAME)).then(argumentPlayerName().executes(this::removeGroupWhitelist)))
-                                )
+                        .then(literal("remove").requires(hasPermission("player")).executes(missingArg(GROUP_NAME))
+                                .then(argumentGroupName().executes(missingArg(PLAYER_NAME))
+                                        .then(argument(PLAYER_NAME, word()).suggests(this::suggestGroupPlayers).executes(this::removeGroupWhitelist)))
+                        )
                 )
                 .then(literal("add").executes(missingArg(SERVER_NAME))
                         .then(argumentServerName().executes(missingArg(PLAYER_NAME)).then(argumentPlayerName().executes(this::addServerWhitelist))))
@@ -71,9 +75,28 @@ public class Commands extends Command implements TabExecutor {
                 .then(literal("off").executes(this::setDisable));
 
         this.plugin = plugin;
+        msgCnf = plugin.message;
         config = plugin.config;
         dispatcher = new CommandDispatcher<>();
         dispatcher.register(root);
+    }
+
+    private Predicate<CommandSender> _hasPermission(String name) {
+        return (sender) -> sender.hasPermission(BungeeCordWhitelistCTMeta.ID + ".admin")
+                || sender.hasPermission(BungeeCordWhitelistCTMeta.ID + ".commands" + name);
+    }
+
+    private Predicate<CommandSender> hasPermission() {
+        return _hasPermission("");
+    }
+
+    private Predicate<CommandSender> hasPermission(String name) {
+        return _hasPermission("." + name);
+    }
+
+    @Override
+    public boolean hasPermission(CommandSender sender) {
+        return hasPermission().test(sender);
     }
 
     private RequiredArgumentBuilder<CommandSender, String> argumentGroupName() {
@@ -81,8 +104,21 @@ public class Commands extends Command implements TabExecutor {
     }
 
     private CompletableFuture<Suggestions> suggestGroups(CommandContext<CommandSender> ctx, SuggestionsBuilder suggestions) {
-        return suggestMatching(plugin.config.getGroups().keySet(), suggestions);
+        return suggestMatching(config.getGroups().keySet(), suggestions);
     }
+
+    private CompletableFuture<Suggestions> suggestGroupNoPlayers(CommandContext<CommandSender> ctx, SuggestionsBuilder suggestions) {
+        final String groupName = getString(ctx, GROUP_NAME);
+        final Set<String> players = config.getWhitelist().getOrDefault(groupName, Collections.emptySet());
+
+        return suggestMatching(getAllPlayersName(plugin).stream().filter(s -> !players.contains(s)).toList(), suggestions);
+    }
+
+    private CompletableFuture<Suggestions> suggestGroupPlayers(CommandContext<CommandSender> ctx, SuggestionsBuilder suggestions) {
+        final String groupName = getString(ctx, GROUP_NAME);
+        return suggestMatching(config.getWhitelist().getOrDefault(groupName, Collections.emptySet()), suggestions);
+    }
+
 
     private RequiredArgumentBuilder<CommandSender, String> argumentPlayerName() {
         return argument(PLAYER_NAME, word()).suggests(this::suggestPlayers);
@@ -100,17 +136,15 @@ public class Commands extends Command implements TabExecutor {
         return suggestMatching(getAllServersName(plugin), suggestions);
     }
 
-    private int test(CommandContext<CommandSender> ctx) {
-        plugin.getLogger().info("test");
-        return 0;
-    }
-
     private com.mojang.brigadier.Command<CommandSender> missingArg(String arg) {
         return ctx -> missingArg(arg, ctx);
     }
 
     private int missingArg(String arg, CommandContext<CommandSender> ctx) {
-        ctx.getSource().sendMessage(new ComponentBuilder("test").create());
+        final Audience audience = plugin.adventure().sender(ctx.getSource());
+
+        audience.sendMessage(miniMessage().deserialize(msgCnf.getMissingArgument(),
+                component("arg_name", Component.text(arg))));
         return 0;
     }
 
@@ -120,12 +154,11 @@ public class Commands extends Command implements TabExecutor {
             ParseResults<CommandSender> parse = dispatcher.parse(" " + String.join(" ", args), sender);
             try {
                 dispatcher.execute(parse);
-            } catch (CommandSyntaxException e) {
-                // TODO add help/error reply
+            } catch (CommandSyntaxException error) {
                 sender.sendMessage();
             }
-        } catch (Exception ignored) {
-            // TODO add help reply
+        } catch (Exception error) {
+            sender.sendMessage();
         }
     }
 
@@ -143,101 +176,200 @@ public class Commands extends Command implements TabExecutor {
         return dispatcher.parse(" " + String.join(" ", args), sender);
     }
 
-
     private int addServerWhitelist(CommandContext<CommandSender> ctx) {
-        String serverName = getString(ctx, SERVER_NAME);
-        String playerName = getString(ctx, PLAYER_NAME);
+        final String serverName = getString(ctx, SERVER_NAME);
+        final String playerName = getString(ctx, PLAYER_NAME);
+        final Audience audience = plugin.adventure().sender(ctx.getSource());
 
-        Map<String, Set<String>> specialWhitelist = plugin.config.getSpecialWhitelist();
+        Map<String, Set<String>> specialWhitelist = config.getSpecialWhitelist();
         Set<String> servers = specialWhitelist.getOrDefault(playerName, new HashSet<>());
         servers.add(serverName);
+        servers.remove("!" + serverName);
         specialWhitelist.put(playerName, servers);
-        plugin.config.setSpecialWhitelist(specialWhitelist);
+        config.setSpecialWhitelist(specialWhitelist);
 
-        TranslatableComponent msg = new TranslatableComponent("velocityct.whitelist.serverAddPlayerCompleted");
-        msg.addWith(serverName);
-        msg.addWith(playerName);
-        ctx.getSource().sendMessage(msg);
+        audience.sendMessage(miniMessage().deserialize(msgCnf.getServerAddPlayerCompleted(),
+                component("server_name", text(serverName)),
+                component("player_name", text(playerName))
+        ));
         return 0;
     }
 
     private int removeServerWhitelist(CommandContext<CommandSender> ctx) {
-        String serverName = getString(ctx, SERVER_NAME);
-        String playerName = getString(ctx, PLAYER_NAME);
+        final String serverName = getString(ctx, SERVER_NAME);
+        final String playerName = getString(ctx, PLAYER_NAME);
+        final Audience audience = plugin.adventure().sender(ctx.getSource());
 
-        Map<String, Set<String>> specialWhitelist = plugin.config.getSpecialWhitelist();
+        Map<String, Set<String>> specialWhitelist = config.getSpecialWhitelist();
         Set<String> servers = specialWhitelist.getOrDefault(playerName, new HashSet<>());
         servers.remove(serverName);
 
-        if (plugin.config.hasInWhitelist(serverName, playerName)) {
+        if (config.hasInWhitelist(serverName, playerName)) {
             servers.add("!" + serverName);
         }
         if (servers.isEmpty()) specialWhitelist.remove(playerName);
         else specialWhitelist.put(playerName, servers);
-        plugin.config.setSpecialWhitelist(specialWhitelist);
+        config.setSpecialWhitelist(specialWhitelist);
 
-        TranslatableComponent msg = new TranslatableComponent("velocityct.whitelist.serverRemovePlayerCompleted");
-        msg.addWith(serverName);
-        msg.addWith(playerName);
-        ctx.getSource().sendMessage(msg);
+        audience.sendMessage(miniMessage().deserialize(msgCnf.getServerRemovePlayerCompleted(),
+                component("server_name", text(serverName)),
+                component("player_name", text(playerName))
+        ));
         return 0;
     }
 
     private int showGroups(CommandContext<CommandSender> ctx) {
         CommandSender source = ctx.getSource();
+        final Audience audience = plugin.adventure().sender(source);
         Optional<String> groupNameOpt = getStringOpt(ctx, GROUP_NAME);
         if (groupNameOpt.isPresent()) {
             String groupName = groupNameOpt.get();
             Set<String> groups = config.getGroups().getOrDefault(groupName, null);
             if (groups == null) {
-                source.sendMessage(new TextComponent("velocityct.whitelist.groupNotFound"));
+                audience.sendMessage(miniMessage().deserialize(msgCnf.getGroupNotFound()));
                 return -1;
             }
 
             int serverCount = groups.size() - 1;
             List<String> serverNames = getAllServersName(plugin);
             List<String> serverList = groups.stream().sorted().toList();
-            TextComponent message = new TextComponent("velocityct.whitelist.groupShowServers");
-            message.addExtra(groupName);
-            ComponentBuilder messages = new ComponentBuilder(message);
+            Component message = miniMessage().deserialize(msgCnf.getGroupShowServers(), component("group_name", text(groupName)));
             for (int i = 0; i <= serverCount; i++) {
                 String serverName = serverList.get(i);
-                TextComponent tmp = new TextComponent(" " + serverName);
-                tmp.setColor(ChatColor.GRAY);
+                Component tmp = text(" " + serverName, NamedTextColor.GRAY);
                 if (!serverNames.contains(serverName)) {
-                    tmp.setColor(ChatColor.RED);
-
-                    TextComponent haveText = new TextComponent("velocityct.serverInvalid");
-                    haveText.addExtra(serverName);
-                    tmp.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text(new TextComponent[]{haveText})));
+                    tmp = tmp.color(NamedTextColor.RED).hoverEvent(HoverEvent.showText(miniMessage().deserialize(
+                            msgCnf.getServerInvalid(),
+                            component("server_name", text(serverName)))
+                    ));
                 }
-                messages.append(tmp);
+                message = message.append(tmp);
                 if (i < serverCount) {
-                    TextComponent splitText = new TextComponent(",");
-                    splitText.setColor(ChatColor.GRAY);
-                    messages.append(splitText);
+                    message = message.append(text(",", NamedTextColor.GRAY));
                 }
             }
-            source.sendMessage(message);
+            audience.sendMessage(message);
         } else {
-            TextComponent msg1 = new TextComponent("velocityct.whitelist.groupShow");
-            msg1.setColor(ChatColor.DARK_AQUA);
-            TextComponent msg2 = new TextComponent(String.join(", ", config.getGroups().keySet().stream().sorted().toList()));
-            msg2.setColor(ChatColor.GRAY);
-            ctx.getSource().sendMessage(msg1, msg2);
+            List<String> groupsList = config.getGroups().keySet().stream().sorted().toList();
+            Component message = miniMessage().deserialize(msgCnf.getGroupShow());
+            audience.sendMessage(message.append(text(" " + String.join(", ", groupsList), NamedTextColor.GRAY)));
         }
         return 0;
     }
 
     private int setEnable(CommandContext<CommandSender> ctx) {
+        final Audience audience = plugin.adventure().sender(ctx.getSource());
+
         config.setWhitelistEnable(true);
-        ctx.getSource().sendMessage(new TranslatableComponent("velocityct.whitelist.enable"));
+        config.save();
+
+        audience.sendMessage(miniMessage().deserialize(msgCnf.getEnable()));
         return 0;
     }
 
     private int setDisable(CommandContext<CommandSender> ctx) {
-        config.setWhitelistEnable(true);
-        ctx.getSource().sendMessage(new TranslatableComponent("velocityct.whitelist.disable"));
+        final Audience audience = plugin.adventure().sender(ctx.getSource());
+
+        config.setWhitelistEnable(false);
+        config.save();
+
+        audience.sendMessage(miniMessage().deserialize(msgCnf.getDisable()));
+        return 0;
+    }
+
+    private int createGroup(CommandContext<CommandSender> ctx) {
+        final Audience audience = plugin.adventure().sender(ctx.getSource());
+        Optional<String> groupNameOpt = getStringOpt(ctx, GROUP_NAME);
+        if (groupNameOpt.isPresent()) {
+            String groupName = groupNameOpt.get();
+            Map<String, Set<String>> groups = config.getGroups();
+            if (groups.containsKey(groupName)) {
+                audience.sendMessage(miniMessage().deserialize(msgCnf.getGroupAlreadyExists(),
+                        component("group_name", text(groupName))));
+                return -1;
+            }
+            groups.put(groupName, new HashSet<>());
+            config.setGroups(groups);
+            audience.sendMessage(miniMessage().deserialize(msgCnf.getGroupCreateCompleted(),
+                    component("group_name", text(groupName))));
+        }
+        return 0;
+    }
+
+    private int deleteGroup(CommandContext<CommandSender> ctx) {
+        final Audience audience = plugin.adventure().sender(ctx.getSource());
+        String groupName = getString(ctx, GROUP_NAME);
+        Map<String, Set<String>> groups = config.getGroups();
+        if (!groups.containsKey(groupName)) {
+            audience.sendMessage(miniMessage().deserialize(msgCnf.getGroupNotFound(),
+                    component("group_name", text(groupName))));
+            return -1;
+        }
+        groups.remove(groupName);
+        config.setGroups(groups);
+        audience.sendMessage(miniMessage().deserialize(msgCnf.getGroupDeleteCompleted(),
+                component("group_name", text(groupName))));
+        return 0;
+    }
+
+    private int showGroupPlayers(CommandContext<CommandSender> ctx) {
+        final Audience audience = plugin.adventure().sender(ctx.getSource());
+        Optional<String> groupNameOpt = getStringOpt(ctx, GROUP_NAME);
+
+        if (groupNameOpt.isPresent()) {
+            String groupName = groupNameOpt.get();
+            Set<String> players = config.getWhitelist().getOrDefault(groupName, null);
+
+            if (players == null) {
+                audience.sendMessage(miniMessage().deserialize(msgCnf.getGroupNotFound()));
+                return -1;
+            }
+
+            Component message = miniMessage().deserialize(msgCnf.getGroupShowPlayers(),
+                    component("group_name", text(groupName)));
+            List<String> playersList = players.stream().sorted().toList();
+            audience.sendMessage(message.append(Component.text(" " + String.join(", ", playersList), NamedTextColor.GRAY)));
+            return 0;
+        }
+
+        audience.sendMessage(miniMessage().deserialize(msgCnf.getGroupNotFound()));
+        return -1;
+    }
+
+
+    private int addGroupWhitelist(CommandContext<CommandSender> ctx) {
+        final Audience audience = plugin.adventure().sender(ctx.getSource());
+        String groupName = getString(ctx, GROUP_NAME);
+        String playerName = getString(ctx, PLAYER_NAME);
+
+        Map<String, Set<String>> whitelist = config.getWhitelist();
+        Set<String> players = whitelist.getOrDefault(groupName, new HashSet<>());
+        players.add(playerName);
+        whitelist.put(groupName, players);
+        config.setWhitelist(whitelist);
+
+        audience.sendMessage(miniMessage().deserialize(msgCnf.getGroupAddPlayerCompleted(),
+                component("group_name", text(groupName)),
+                component("player_name", text(playerName)))
+        );
+        return 0;
+    }
+
+    private int removeGroupWhitelist(CommandContext<CommandSender> ctx) {
+        final Audience audience = plugin.adventure().sender(ctx.getSource());
+        String groupName = getString(ctx, GROUP_NAME);
+        String playerName = getString(ctx, PLAYER_NAME);
+
+        Map<String, Set<String>> whitelist = config.getWhitelist();
+        Set<String> players = whitelist.getOrDefault(groupName, new HashSet<>());
+        players.remove(playerName);
+        whitelist.put(groupName, players);
+        config.setWhitelist(whitelist);
+
+        audience.sendMessage(miniMessage().deserialize(msgCnf.getGroupRemovePlayerCompleted(),
+                component("group_name", text(groupName)),
+                component("player_name", text(playerName)))
+        );
         return 0;
     }
 }

@@ -1,0 +1,36 @@
+# 是否啟用白名單
+enable: true
+
+# 白名單等級，該等級玩家可進入的伺服器
+groups:
+  level1: &id_001
+    - Survival
+    - Mirror
+    - Mirror2
+    - Creative
+    - Creative2
+    - Arceon
+  level2: *id_001
+  level3:
+    - Survival
+    - Mirror
+    - Mirror2
+  level4: [ ]
+
+# 白名單等級，該等級玩家可進入的伺服器
+whitelist:
+  level1:
+    - player_1
+  level2:
+    - player_2
+  level3:
+    - player_3
+  level4:
+    - player_4
+
+# 特殊白名單，該名單玩家可指定進入的伺服器
+# 前方代`!`表示禁止進入該伺服器
+specialWhitelist:
+  monkey_Reachrs:
+    - "!test"
+    - test1
