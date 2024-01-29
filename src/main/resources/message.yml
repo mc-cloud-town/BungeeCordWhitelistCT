@@ -1,15 +1,15 @@
 help: |
-  <prefix> help - 顯示幫助訊息
-  <prefix> enable - 開啟白名單
-  <prefix> disable - 關閉白名單
-  <prefix> groups list - 查看所有的白名單組
-  <prefix> groups list <group_name> players - 查看所有在白名單組內的玩家
-  <prefix> groups create <group_name> - 創建白名單組
-  <prefix> groups delete <group_name> - 刪除白名單組
-  <prefix> groups add \<group_name\> \<player_name\> - 添加玩家於 \<group_name\> 中
-  <prefix> groups remove \<group_name\> \<player_name\> - 移除玩家於 \<group_name\> 中
-  <prefix> add \<server_name\> \<player_name\> - 添加玩家在 \<server_name\> 的白名單
-  <prefix> remove \<server_name\> \<player_name\> - 移除玩家在 \<server_name\> 的白名單
+  <yellow>/<prefix> help <white>- <aqua>顯示幫助訊息
+  <yellow>/<prefix> enable <white>- <aqua>開啟白名單
+  <yellow>/<prefix> disable <white>- <aqua>關閉白名單
+  <yellow>/<prefix> groups list <white>- <aqua>查看所有的白名單組
+  <yellow>/<prefix> groups list <group_name> players <white>- <aqua>查看所有在白名單組內的玩家
+  <yellow>/<prefix> groups create <group_name> <white>- <aqua>創建白名單組
+  <yellow>/<prefix> groups delete <group_name> <white>- <aqua>刪除白名單組
+  <yellow>/<prefix> groups add \<group_name> \<player_name> <white>- <aqua>添加玩家於 \<group_name> 中
+  <yellow>/<prefix> groups remove \<group_name> \<player_name> <white>- <aqua>移除玩家於 \<group_name> 中
+  <yellow>/<prefix> add \<server_name> \<player_name> <white>- <aqua>添加玩家在 \<server_name> 的白名單
+  <yellow>/<prefix> remove \<server_name> \<player_name> <white>- <aqua>移除玩家在 \<server_name> 的白名單
 kickMessage: |
   &c您不是本服的成員，無法進入。
   You are not a member of this server and cannot enter.'
@@ -32,5 +32,5 @@ groupAlreadyExists: '<red><b>白名單组 <group_name> 已經存在'
 groupDeleteCompleted: '<red><b>白名單组 <group_name> 刪除完成'
 groupAddPlayerCompleted: '已從白名單組 <group_name> 添加 <player_name> 完畢'
 groupRemovePlayerCompleted: '已從白名單組 <group_name> 移除 <player_name> 完畢'
-serverAddPlayerCompleted: '添加 <player_name> 到 <server_name> 伺服器白名單'
-serverRemovePlayerCompleted: '<red><b>移除 <player_name>到 <server_name> 伺服器白名單'
+serverAddPlayerCompleted: '已添加 <player_name> 到 <server_name> 伺服器的白名單'
+serverRemovePlayerCompleted: '<red><b>已移除 <player_name> 到 <server_name> 伺服器的白名單'

@@ -195,6 +195,13 @@ public class Commands extends Command implements TabExecutor {
         return 0;
     }
 
+    private void sendHelp(CommandSender sender) {
+        final Audience audience = plugin.adventure().sender(sender);
+        audience.sendMessage(miniMessage().deserialize(msgCnf.getHelp(),
+                component("prefix", text(getName()))
+        ));
+    }
+
     private int removeServerWhitelist(CommandContext<CommandSender> ctx) {
         final String serverName = getString(ctx, SERVER_NAME);
         final String playerName = getString(ctx, PLAYER_NAME);
