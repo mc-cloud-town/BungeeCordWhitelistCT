@@ -31,9 +31,7 @@ jobs:
       - name: Summon
         run: |
           mkdir out
-          cd target
-          ls
-          cp bungeecordwhitelistct-*-SNAPSHOT.jar ../out
+          cp target/bungeecordwhitelistct-${{ inputs.releaseVersion }} ../out
 
       - uses: actions/upload-artifact@v4
         with:
