@@ -46,6 +46,7 @@ public class FileConfig {
 
     @SuppressWarnings("ResultOfMethodCallIgnored")
     public void writeDefault() {
+        file.getParentFile().mkdirs();
         try (InputStream in = this.getClass().getClassLoader().getResourceAsStream(defaultPath)) {
             file.delete();
             Files.copy(Objects.requireNonNull(in), file.toPath());
