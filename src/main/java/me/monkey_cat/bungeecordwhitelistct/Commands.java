@@ -72,7 +72,9 @@ public class Commands extends Command implements TabExecutor {
                 .then(literal("remove").executes(missingArg(SERVER_NAME))
                         .then(argumentServerName().executes(missingArg(PLAYER_NAME)).then(argumentPlayerName().executes(this::removeServerWhitelist))))
                 .then(literal("on").executes(this::setEnable))
-                .then(literal("off").executes(this::setDisable));
+                .then(literal("off").executes(this::setDisable))
+                .then(literal("move").requires(hasPermission("move")).executes(missingArg(PLAYER_NAME))
+                        .then(argumentPlayerName().executes(missingArg(GROUP_NAME)).then(argumentGroupName()).executes(this::movePlayerGroup)));
 
         this.plugin = plugin;
         msgCnf = plugin.message;
@@ -81,19 +83,34 @@ public class Commands extends Command implements TabExecutor {
         dispatcher.register(root);
     }
 
+    /**
+     * - .admin
+     * - .commands{name}
+     */
     private Predicate<CommandSender> _hasPermission(String name) {
         return (sender) -> sender.hasPermission(BungeeCordWhitelistCTMeta.ID + ".admin")
                 || sender.hasPermission(BungeeCordWhitelistCTMeta.ID + ".commands" + name);
     }
 
+    /**
+     * - .admin
+     * - .commands
+     */
     private Predicate<CommandSender> hasPermission() {
         return _hasPermission("");
     }
 
+    /**
+     * - .admin
+     * - .commands.{name}
+     */
     private Predicate<CommandSender> hasPermission(String name) {
         return _hasPermission("." + name);
     }
 
+    /**
+     * Has command send has permission
+     */
     @Override
     public boolean hasPermission(CommandSender sender) {
         return hasPermission().test(sender);
@@ -118,7 +135,6 @@ public class Commands extends Command implements TabExecutor {
         final String groupName = getString(ctx, GROUP_NAME);
         return suggestMatching(config.getWhitelist().getOrDefault(groupName, Collections.emptySet()), suggestions);
     }
-
 
     private RequiredArgumentBuilder<CommandSender, String> argumentPlayerName() {
         return argument(PLAYER_NAME, word()).suggests(this::suggestPlayers);
@@ -284,22 +300,42 @@ public class Commands extends Command implements TabExecutor {
         return 0;
     }
 
+    private int movePlayerGroup(CommandContext<CommandSender> ctx) {
+        final Audience audience = plugin.adventure().sender(ctx.getSource());
+        String groupName = getString(ctx, GROUP_NAME);
+        String playerName = getString(ctx, PLAYER_NAME);
+        Map<String, Set<String>> whitelist = config.getWhitelist();
+        Set<String> players = whitelist.getOrDefault(groupName, null);
+
+        if (players == null) {
+            audience.sendMessage(miniMessage().deserialize(msgCnf.getGroupNotFound()));
+            return -1;
+        }
+
+        for (var data : whitelist.entrySet()) {
+            data.getValue().remove(playerName);
+        }
+        players.add(playerName);
+        config.setWhitelist(whitelist);
+
+        audience.sendMessage(miniMessage().deserialize(msgCnf.getPlayerMoveToGroup(),
+                component("group_name", text(groupName))));
+        return 0;
+    }
+
     private int createGroup(CommandContext<CommandSender> ctx) {
         final Audience audience = plugin.adventure().sender(ctx.getSource());
-        Optional<String> groupNameOpt = getStringOpt(ctx, GROUP_NAME);
-        if (groupNameOpt.isPresent()) {
-            String groupName = groupNameOpt.get();
-            Map<String, Set<String>> groups = config.getGroups();
-            if (groups.containsKey(groupName)) {
-                audience.sendMessage(miniMessage().deserialize(msgCnf.getGroupAlreadyExists(),
-                        component("group_name", text(groupName))));
-                return -1;
-            }
-            groups.put(groupName, new HashSet<>());
-            config.setGroups(groups);
-            audience.sendMessage(miniMessage().deserialize(msgCnf.getGroupCreateCompleted(),
+        String groupName = getString(ctx, GROUP_NAME);
+        Map<String, Set<String>> groups = config.getGroups();
+        if (groups.containsKey(groupName)) {
+            audience.sendMessage(miniMessage().deserialize(msgCnf.getGroupAlreadyExists(),
                     component("group_name", text(groupName))));
+            return -1;
         }
+        groups.put(groupName, new HashSet<>());
+        config.setGroups(groups);
+        audience.sendMessage(miniMessage().deserialize(msgCnf.getGroupCreateCompleted(),
+                component("group_name", text(groupName))));
         return 0;
     }
 
@@ -342,7 +378,6 @@ public class Commands extends Command implements TabExecutor {
         audience.sendMessage(miniMessage().deserialize(msgCnf.getGroupNotFound()));
         return -1;
     }
-
 
     private int addGroupWhitelist(CommandContext<CommandSender> ctx) {
         final Audience audience = plugin.adventure().sender(ctx.getSource());

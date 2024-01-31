@@ -10,6 +10,7 @@ help: |
   <yellow>/<prefix> groups remove \<group_name> \<player_name> <white>- <aqua>移除玩家於 \<group_name> 中
   <yellow>/<prefix> add \<server_name> \<player_name> <white>- <aqua>添加玩家在 \<server_name> 的白名單
   <yellow>/<prefix> remove \<server_name> \<player_name> <white>- <aqua>移除玩家在 \<server_name> 的白名單
+  <yellow>/<prefix> move \<player_name> \<group_name> <white>- <aqua>將成員的所有組移除並重新添加至 \<group_name>
 kickMessage: |
   &c您不是本服的成員，無法進入。
   You are not a member of this server and cannot enter.'
@@ -34,3 +35,4 @@ groupAddPlayerCompleted: '已從白名單組 <group_name> 添加 <player_name> �
 groupRemovePlayerCompleted: '已從白名單組 <group_name> 移除 <player_name> 完畢'
 serverAddPlayerCompleted: '已添加 <player_name> 到 <server_name> 伺服器的白名單'
 serverRemovePlayerCompleted: '<red><b>已移除 <player_name> 到 <server_name> 伺服器的白名單'
+playerMoveToGroup: '<yellow>已將成員的所有組移除並重新添加至 <group_name>'

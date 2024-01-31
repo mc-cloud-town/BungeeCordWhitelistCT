@@ -102,4 +102,8 @@ public class Message extends FileConfig {
     public String getServerRemovePlayerCompleted() {
         return tryGetString("serverRemovePlayerCompleted");
     }
+
+    public String getPlayerMoveToGroup() {
+        return tryGetString("playerMoveToGroup");
+    }
 }
